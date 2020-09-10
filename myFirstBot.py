@@ -37,7 +37,26 @@ class MyClient(discord.Client):
                         await message.channel.send(text)
                     except urllib.error.HTTPError:
                         await message.channel.send("An error happened. maybe this project hasnt been shared yet or maybe it doesnt exist.")
-				
+		if(commandArgs[1] == "user"):
+                    name = ""
+                    try:
+                        name = str(int(commandArgs[2]))
+                    except ValueError:
+                        print("Error: You have entered an invalid username.")
+					
+                    try:
+                        contents = json.loads(urllib.request.urlopen("https://api.scratch.mit.edu/users/" + name).read())
+                        text = 'Username: ' + str(contents["username"])
+                        text = text + "\nLocation: " + str(contents["country"])
+                        text = text + "\nJoin Date: " + str(contents["history"]["joined"][:10])
+                        text = text + "\nFollowers: " + str(len(contents = json.loads(urllib.request.urlopen("https://api.scratch.mit.edu/users/" + name + /followers).read())))
+                        text = text + "\nShared Projects: " + str(len(contents = json.loads(urllib.request.urlopen("https://api.scratch.mit.edu/users/" + name + "/projects").read())))
+                        text = text + "\nBio: " + str(contents["bio"])
+                        text = text + "\nWhat I'm Working On: " + str(contents["status"])
+                        text = text + "\nLink: https://scratch.mit.edu/users/" + str(name)
+                        await message.channel.send(text)
+                    except urllib.error.HTTPError:
+                        await message.channel.send("An error happened. maybe this project hasnt been shared yet or maybe it doesnt exist.")
 				
             #print('Message from {0.author}: {0.content}'.format(message))
 
