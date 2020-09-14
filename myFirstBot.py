@@ -13,7 +13,7 @@ class MyClient(discord.Client):
     async def on_message(self, message):
         if(not message.author.bot):
             commandArgs = message.content.split()
-            if(commandArgs[0] == "!sc"):
+            if(commandArgs[0] == "sh!"):
                 if(commandArgs[1] == "project"):
                     projectid = "1"
                     try:
