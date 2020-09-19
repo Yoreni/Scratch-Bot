@@ -123,32 +123,50 @@ class MyClient(discord.Client):
                     try:
                         studioid = str(int(commandArgs[2]))
                     except ValueError:
-                        print("Error: You have not enterned a valid project id.")
-                                            
-                    try:
-                        contents = json.loads(urllib.request.urlopen("https://api.scratch.mit.edu/studios/" + studioid).read()) 
+                        print("Error: You have not enterned a valid studio id.")
+                    if(len(commandArgs) > 3 and commandArgs[3] == "project"):
+                        projects = int(str(urllib.request.urlopen("https://scratch.mit.edu/studios/" + studioid + "/projects/").read()).split("Shared Projects (")[1].split(")")[0])
+                        lookat = 0
+                        if(commandArgs[4] == "latest"):
+                            lookat = projects
+                        else:
+                            try:
+                                lookat = str(int(commandArgs[4]))
+                            except ValueError:
+                                print("Error: You have not enterned a valid number.")
+                        try:
+                            contents = json.loads(urllib.request.urlopen("https://api.scratch.mit.edu/studios/" + str(name) + "/projects?limit=1&offset=" + str(int(lookat) - 1) + "/").read())[0]
+                            contents["author"]["username"] = name
+                            text = "*" + ordinalNumber(lookat) + " project in studio " + string(studioid) + "*\n" + projectDisplayText(contents)
+                            await message.channel.send(text)
+                            self.count += 1
+                        except urllib.error.HTTPError:
+                            await message.channel.send("An error happened. this user doesnt exist.")          
+                    else:          
+                        try:
+                            contents = json.loads(urllib.request.urlopen("https://api.scratch.mit.edu/studios/" + studioid).read()) 
                             
-                        text = "**" + str(contents["title"]) + "**"
-                        #text = text + "\nOnwer: " + contents[] for some reason the owner is in id form which isnt very useful
-                        text = text + "\n> :link: https://scratch.mit.edu/studios/" + str(studioid)
-                        text = text + "\n:bust_in_silhouette:" + str(contents["stats"]["followers"])
-                        text = text + "\nCreated: " + str(contents["history"]["created"][:10])
-                        text = text + "\nModified: " + str(contents["history"]["modified"][:10])
-                        desc = contents["description"]
-                        if(len(desc) > 600):
-                            desc = desc.replace("```","\```",100)
-                            desc = desc.replace("`","\`",100)
-                            desc = desc.replace("**","\**",100)
-                            desc = desc[:600] + "..."
-                        if(len(desc) > 0):
-                            text = text + "\nDescription: ```" + desc + "```"
-                        sending = await message.channel.send(text)
-                        await sending.add_reaction("💥")
-                        self.count += 1
-                    except urllib.error.HTTPError:
-                        await message.channel.send("An error happened. maybe this studio doesnt exist.")
-            except IndexError:
-                pass
+                            text = "**" + str(contents["title"]) + "**"
+                            #text = text + "\nOnwer: " + contents[] for some reason the owner is in id form which isnt very useful
+                            text = text + "\n> :link: https://scratch.mit.edu/studios/" + str(studioid)
+                            text = text + "\n:bust_in_silhouette:" + str(contents["stats"]["followers"])
+                            text = text + "\nCreated: " + str(contents["history"]["created"][:10])
+                            text = text + "\nModified: " + str(contents["history"]["modified"][:10])
+                            desc = contents["description"]
+                            if(len(desc) > 600):
+                                desc = desc.replace("```","\```",100)
+                                desc = desc.replace("`","\`",100)
+                                desc = desc.replace("**","\**",100)
+                                desc = desc[:600] + "..."
+                            if(len(desc) > 0):
+                                text = text + "\nDescription: ```" + desc + "```"
+                            sending = await message.channel.send(text)
+                            await sending.add_reaction("💥")
+                            self.count += 1
+                        except urllib.error.HTTPError:
+                            await message.channel.send("An error happened. maybe this studio doesnt exist.")
+                except IndexError:
+                    pass
 				
             #print('Message from {0.author}: {0.content}'.format(message))
     async def on_reaction_add(self,reaction, user):
