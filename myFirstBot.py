@@ -95,7 +95,7 @@ class MyClient(discord.Client):
                         try:
                             contents = json.loads(urllib.request.urlopen("https://api.scratch.mit.edu/users/" + str(name) + "/projects?limit=1&offset=" + str(int(lookat) - 1) + "/").read())[0]
                             contents["author"]["username"] = name
-                            text = "*" + name + "s " + ordinalNumber(lookat) + " project*\n" + projectDisplayText(contents)
+                            text = "*" + name + "'s " + ordinalNumber(lookat) + " project*\n" + projectDisplayText(contents)
                             await message.channel.send(text)
                             self.count += 1
                         except urllib.error.HTTPError:
