@@ -96,7 +96,11 @@ class MyClient(discord.Client):
                             contents = json.loads(urllib.request.urlopen("https://api.scratch.mit.edu/users/" + str(name) + "/projects?limit=1&offset=" + str(int(lookat) - 1) + "/").read())[0]
                             contents["author"]["username"] = name
                             text = "*" + name + "'s " + ordinalNumber(lookat) + " project*\n" + projectDisplayText(contents)
-                            await message.channel.send(text)
+                            msg = await message.channel.send(text)
+                            if (int(lookat) > 1):
+                                await msg.add_reaction("⬅")
+                            if (int(lookat) < int(projects)):
+                                await msg.add_reaction("➡")
                             self.count += 1
                         except urllib.error.HTTPError:
                             await message.channel.send("An error happened. this user doesnt exist.")
@@ -126,6 +130,7 @@ class MyClient(discord.Client):
                         print("Error: You have not enterned a valid studio id.")
                     if(len(commandArgs) > 3 and commandArgs[3] == "project"):
                         projects = int(str(urllib.request.urlopen("https://scratch.mit.edu/studios/" + studioid + "/projects/").read()).split("Shared Projects (")[1].split(")")[0])
+                        await message.channel.send("There are " + projects + " in this studio")
                         lookat = 0
                         if(commandArgs[4] == "latest"):
                             lookat = projects
@@ -135,9 +140,9 @@ class MyClient(discord.Client):
                             except ValueError:
                                 print("Error: You have not enterned a valid number.")
                         try:
-                            contents = json.loads(urllib.request.urlopen("https://api.scratch.mit.edu/studios/" + str(name) + "/projects?limit=1&offset=" + str(int(lookat) - 1) + "/").read())[0]
+                            contents = json.loads(urllib.request.urlopen("https://api.scratch.mit.edu/studios/" + str(studioid) + "/projects?limit=1&offset=" + str(int(lookat) - 1) + "/").read())[0]
                             contents["author"]["username"] = name
-                            text = "*" + ordinalNumber(lookat) + " project in studio " + string(studioid) + "*\n" + projectDisplayText(contents)
+                            text = "*" + ordinalNumber(lookat) + " project in studio " + str(studioid) + "*\n" + projectDisplayText(contents)
                             await message.channel.send(text)
                             self.count += 1
                         except urllib.error.HTTPError:
@@ -160,18 +165,41 @@ class MyClient(discord.Client):
                                 desc = desc[:600] + "..."
                             if(len(desc) > 0):
                                 text = text + "\nDescription: ```" + desc + "```"
-                            sending = await message.channel.send(text)
-                            await sending.add_reaction("💥")
+                            await message.channel.send(text)
                             self.count += 1
                         except urllib.error.HTTPError:
                             await message.channel.send("An error happened. maybe this studio doesnt exist.")
-                except IndexError:
-                    pass
+            except IndexError:
+                pass
 				
             #print('Message from {0.author}: {0.content}'.format(message))
     async def on_reaction_add(self,reaction, user):
-        pass
-        #print(str(reaction.message.author))
+        #print(reaction)
+        if(reaction.message.author.bot and not user.bot):
+            messageList = str(reaction.message.content).split()
+            try:
+                lookat = messageList[1][:len(messageList[1]) - 2]
+                name = messageList[0][1:len(messageList[0]) - 2]
+                display = False
+                projects = int(str(urllib.request.urlopen("https://scratch.mit.edu/users/" + name + "/projects/").read()).split( "Shared Projects (")[1].split(")")[0])
+                if (str(reaction) == "⬅" and int(lookat) > 1):
+                    lookat = int(lookat) - 1
+                    display = True
+                elif (str(reaction) == "➡" and int(lookat) < int(projects)):
+                    lookat = int(lookat) + 1
+                    display = True
+                if display:
+                    contents = json.loads(urllib.request.urlopen("https://api.scratch.mit.edu/users/" + str(name) + "/projects?limit=1&offset=" + str(int(lookat) - 1) + "/").read())[0]
+                    contents["author"]["username"] = name
+                    text = "*" + name + "'s " + ordinalNumber(lookat) + " project*\n" + projectDisplayText(contents)
+                    msg = await reaction.message.channel.send(text)
+                    if(int(lookat) > 1):
+                        await msg.add_reaction("⬅")
+                    if(int(lookat) < int(projects)):
+                        await msg.add_reaction("➡")
+            except urllib.error.HTTPError:
+                pass
+				
 
 client = MyClient(connector=aiohttp.TCPConnector(ssl=False))
 
